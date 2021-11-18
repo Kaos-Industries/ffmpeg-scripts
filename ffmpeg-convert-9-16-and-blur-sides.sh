@@ -12,7 +12,7 @@ if [ $# -lt 2 ]; then usage
 else
 	output="$2"
 	preset="-preset ultrafast"
-	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $1 | tr -d $'\r')"
+	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
 	wmlength="$(echo $length1 - 3)"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
@@ -38,10 +38,6 @@ else
 	esac
 	shift
 	done
-	# read -p "Enter target resolution [default: 1920x1080]: " res
-	# if ! [[ "$res" =~ ^[0-9]+x[0-9]+$ ]]; then res=1920x1080 &&
-	# 	echo "WARNING: defaulting to $res."
-	# fi
 	read -p "Enter fade duration in seconds: " -ei 2 fadeduration
 	if ! [[ "$fadeduration" =~ ^[0-9]+$ ]] || [[ "$fadeduration" -eq 2 ]]; then 
 		fadeduration=2 
@@ -49,7 +45,7 @@ else
 	else echo "Using fade duration of $fadeduration."
 	fi
 	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=5:d=2:alpha=1,fade=out:st=$length1:d=2:alpha=1[v2];"
- 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.1[wm_scaled][video];"
+ 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -ei 1 -n1 -p "Select watermark position:
 1) Top right
 2) Top left
@@ -113,7 +109,6 @@ else
 	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus "$output"
 	unset fadetime
 fi
-
 
 # gblur=sigma=70:steps=2
 # smartblur=lr=5:ls=10

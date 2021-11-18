@@ -11,7 +11,7 @@ usage() {
 if [ $# -lt 2 ]; then usage
 else
 	preset="-preset ultrafast"
-	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $1 | tr -d $'\r')"
+	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
 	wmlength="$(echo $length1 - 5 | bc)"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
@@ -43,7 +43,7 @@ else
 		echo "WARNING: defaulting to $fadeduration seconds."
 	else echo "Using fade duration of $fadeduration."
 	fi
-	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=10:d=3,fade=out:st=$wmlength:d=3[v2];"
+	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=0:d=3,fade=out:st=$wmlength:d=3[v2];"
  	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
 1) Top right
@@ -82,11 +82,11 @@ case $ans in
 		while [[ -z "$fadetime" ]]; do
 		echo
 		read -p "Enter custom start time in seconds: " fadetime
-		echo "WARNING: using custom fade time of -$fadeduration seconds from first input at $fadetime seconds".
+		echo "WARNING: using custom fade time of $fadetime seconds from first input.".
 	done
   fi
 	if [[ -z "$fadetime" ]]; then fadetime="$(echo "$length1" - "$fadeduration" | tr -d $'\r' | bc)" && 
-		echo "Defaulting to adding fade -$fadeduration seconds from first input at $fadetime seconds." 
+		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
 	ffmpeg -y -i "$1" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
@@ -103,7 +103,7 @@ case $ans in
 	$wmstream2
 	$wmstream3
 	[0:a][1:a]acrossfade=d=$fadeduration[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus "$2"
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$2"
 	unset fadetime
 fi
 

@@ -14,29 +14,29 @@ else
 	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$2" | tr -d $'\r')"
 	length3="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
-	wmlength="$(echo $length2 - 15 | bc)"
+	wmlength="$(echo $length2 - 5 | bc)"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
 	eval set -- "$options"
 	while true
 	do
-	case "$1" in
-	-f|--final) 
-	    preset=""
-	    ;;
-	-h|--help) 
-	    usage
+		case "$1" in
+		-f|--final) 
+		    preset=""
+		    ;;
+		-h|--help) 
+		    usage
+			shift
+		    ;;
+		--)
+		    shift
+		    break;;
+		\?) 
+			echo "$OPTARG is not a valid option."
+			usage
+			shift
+			break;;    
+		esac
 		shift
-	    ;;
-	--)
-	    shift
-	    break;;
-	\?) 
-		echo "$OPTARG is not a valid option."
-		usage
-		shift
-		break;;    
-	esac
-	shift
 	done
 	read -p "Enter first fade duration in seconds: " -ei 2 fadeduration1
 	if ! [[ "$fadeduration1" =~ ^[0-9]+$ ]] || [[ "$fadeduration1" -eq 2 ]]; then 
@@ -51,7 +51,7 @@ else
 	else echo "Setting second fade duration to $fadeduration2."
 	fi
 	wmstream1="[3:v]lut=a=val*0.7,fade=in:st=10:d=3,fade=out:st=$wmlength:d=3[v3];"
- 	wmstream2="[v3][video]scale2ref=w=oh*mdar:h=ih*0.08[wm_scaled][video];"
+ 	wmstream2="[v3][video]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
 1) Top right
 2) Top left
@@ -109,11 +109,11 @@ case $ans in
  	total="$(echo "$length1 + $length2 + $length3 - $fadeduration1 - $fadeduration2" | tr -d $'\r' | bc)"
 	ffmpeg -y -i "$1" -i "$2" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
 	-movflags faststart \
-	-preset ultrafast \
+	$preset \
 	-filter_complex \
 	"color=black:16x16:d=$total[base];
 	[0:v]scale=-2:'max(1080,ih)',setpts=PTS-STARTPTS[v0]; 
-	[1:v]transpose=1,scale=-2:'max(1080,ih)',fade=in:st=0:d=$fadeduration1:alpha=1,setpts=PTS-STARTPTS+(($fadetime1)/TB)[v1]; 
+	[1:v]fade=in:st=0:d=$fadeduration1:alpha=1,setpts=PTS-STARTPTS+(($fadetime1)/TB)[v1]; 
 	[2:v]fade=in:st=0:d=$fadeduration2:alpha=1,setpts=PTS-STARTPTS+(($fadetime2)/TB)[v2]; 
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp]; 
@@ -122,11 +122,12 @@ case $ans in
 	$wmstream1 
 	$wmstream2 
 	$wmstream3 
-	[0:a]asetpts=PTS-STARTPTS[a0];
-	[a0][1:a]acrossfade=d=$fadeduration1,asetpts=PTS-STARTPTS[aud_tmp]; 
+	[0:a][1:a]acrossfade=d=$fadeduration1,asetpts=PTS-STARTPTS[aud_tmp]; 
 	[aud_tmp][2:a]acrossfade=d=$fadeduration2,asetpts=PTS-STARTPTS[outa]" \
-	-r 25 -map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$3"
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$3"
 	unset fadetime1
 	unset fadetime2
 fi
 
+
+# -r 25     needed or not?
