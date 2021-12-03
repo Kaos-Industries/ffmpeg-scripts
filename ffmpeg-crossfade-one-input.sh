@@ -43,8 +43,8 @@ else
 		echo "WARNING: defaulting to $fadeduration seconds."
 	else echo "Using fade duration of $fadeduration."
 	fi
-	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=0:d=3,fade=out:st=$wmlength:d=3[v2];"
- 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
+	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=5:d=3,fade=out:st=$wmlength:d=3[v2];"
+ 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.08[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
 1) Top right
 2) Top left
