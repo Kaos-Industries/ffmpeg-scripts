@@ -53,17 +53,17 @@ else
 " ans
 case $ans in
   1)  echo "Defaulting to top-right position."
-      wmpos="W-w-75:50"
+      wmpos="W-w-100:80"
       wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"				
 			;;
   2)  echo
 			echo "Positioning watermark at top-left."
-			wmpos="50:50"
+			wmpos="100:80"
 			wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
 		  ;;
   3)  echo
 			echo "Positioning watermark at bottom-left."
-			wmpos="75:H-h-50"
+			wmpos="100:h-80"
 			wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
 			;;
 	4)  echo
@@ -73,7 +73,7 @@ case $ans in
 			wmstream3="[tmp2]setsar=1[outv];"
 			;;
   *)  echo "WARNING: invalid option selected, defaulting to top-right position."
-			wmpos="W-w-75:50"
+			wmpos="W-w-100:80"
 			wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
       ;;
 	esac
