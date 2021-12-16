@@ -63,7 +63,7 @@ case $ans in
 		  ;;
   3)  echo
 			echo "Positioning watermark at bottom-left."
-			wmpos="100:h-80"
+			wmpos="100:H-h-80"
 			wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
 			;;
 	4)  echo
