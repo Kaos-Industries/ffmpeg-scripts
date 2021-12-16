@@ -5,7 +5,7 @@ usage() {
 	echo "Pass two sources and an output name."
 	echo "usage: $(basename "$0") source1.mp4 source2.mkv Final.mp4"
 	echo " -h --help        Print this help."
-	echo " -f --no-preset   Disable the ultrafast preset to produce a final file."
+	echo " -f --final   Disable the ultrafast preset to produce a final file."
 	exit
 }
 if [ $# -lt 2 ]; then usage
