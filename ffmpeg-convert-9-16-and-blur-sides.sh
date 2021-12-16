@@ -5,7 +5,7 @@ usage() {
 	echo "Pass a source and an output name."
 	echo "usage: $(basename "$0") source.mp4 Final.mp4"
 	echo " -h --help        Print this help."
-	echo " -f --no-preset   Disable the ultrafast preset to produce a final file."
+	echo " -f --final       Disable the ultrafast preset to produce a final file."
 	exit
 }
 if [ $# -lt 2 ]; then usage
@@ -14,7 +14,7 @@ else
 	preset="-preset ultrafast"
 	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
-	wmlength="$(echo $length1 - 3)"
+	wmlength="$(echo $length1 - 3 | bc)"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
 	eval set -- "$options"
 	while true
@@ -45,7 +45,7 @@ else
 	else echo "Using fade duration of $fadeduration."
 	fi
 	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=5:d=2:alpha=1,fade=out:st=$length1:d=2:alpha=1[v2];"
- 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
+		wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.08[wm_scaled][video];"
 	read -ei 1 -n1 -p "Select watermark position:
 1) Top right
 2) Top left
@@ -90,7 +90,7 @@ else
 		echo "Defaulting to adding fade -$fadeduration seconds from first input at $fadetime seconds." 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
-	ffmpeg -y -i "$1" -i "outro.mp4" -loop 1 -i "../Watermark/watermark4.png" \
+	ffmpeg -y -i "$1" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
 	-movflags +faststart \
 	$preset \
 	-filter_complex \
