@@ -46,7 +46,7 @@ else
 	fi
 	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=5:d=2:alpha=1,fade=out:st=$length1:d=2:alpha=1[v2];"
 		wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.08[wm_scaled][video];"
-	read -ei 1 -n1 -p "Select watermark position:
+	read -e -n1 -p "Select watermark position:
 1) Top right
 2) Top left
 3) Bottom left
