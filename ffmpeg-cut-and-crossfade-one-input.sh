@@ -14,8 +14,10 @@ else
 	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
 	wmlength="$(echo $length1 - 2 | bc)"
-	starttime="$2"
-	croptime="$3"
+	if [ -n "$2" ]; then starttime="-ss $2"
+	fi
+  if [ -n "$3" ]; then croptime="-to $3"
+	fi
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
 	eval set -- "$options"
 	while true
@@ -91,7 +93,7 @@ case $ans in
 		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
-	ffmpeg -y -ss "$starttime" -i "$1" -to "$croptime" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
+	ffmpeg -y $starttime -i "$1" $croptime -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
 	-movflags +faststart \
 	$preset \
 	-filter_complex \
