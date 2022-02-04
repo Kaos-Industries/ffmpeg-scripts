@@ -43,8 +43,8 @@ else
 		echo "WARNING: defaulting to $fadeduration seconds."
 	else echo "Using fade duration of $fadeduration."
 	fi
-	wmstream1="[2:v]lut=a=val*0.6,fade=in:st=5:d=3,fade=out:st=$wmlength:d=3[v2];"
- 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.08[wm_scaled][video];"
+	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=5:d=3,fade=out:st=$wmlength:d=3:alpha=1[v2];"
+ 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
 1) Top right
 2) Top left
@@ -54,17 +54,17 @@ else
 case $ans in
   1)  echo "Defaulting to top-right position."
       wmpos="W-w-100:80"
-      wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"				
+      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"				
 			;;
   2)  echo
 			echo "Positioning watermark at top-left."
 			wmpos="100:80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
 		  ;;
   3)  echo
 			echo "Positioning watermark at bottom-left."
 			wmpos="100:H-h-80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
 			;;
 	4)  echo
 			echo "Disabling watermark."
@@ -74,7 +74,7 @@ case $ans in
 			;;
   *)  echo "WARNING: invalid option selected, defaulting to top-right position."
 			wmpos="W-w-100:80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
       ;;
 	esac
 	read -p "Start fade at custom time in first input? [y/N] " -n1 -r
