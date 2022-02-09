@@ -4,8 +4,8 @@ usage() {
 	echo
 	echo "Pass a source, a start time, an output name and an end time."
 	echo "usage: $(basename "$0") source_file starttime croptime output_file"
-	echo " -h --help        Print this help."
-	echo " -f --no-preset   Disable the ultrafast preset to produce a final file."
+	echo " -h --help     Print this help."
+	echo " -f --final    Disable the ultrafast preset to produce a final file."
 	exit
 }
 if [ $# -lt 2 ]; then usage
@@ -14,10 +14,6 @@ else
 	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
 	wmlength="$(echo $length1 - 4 | bc)"
-	if [ -n "$2" ]; then starttime="-ss $2"
-	fi
-  if [ -n "$4" ]; then croptime="-to $4"
-	fi
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
 	eval set -- "$options"
 	while true
@@ -40,7 +36,12 @@ else
 			break;;    
 		esac
 		shift
-	done	
+	done
+	output="$3"
+	if [ -n "$2" ]; then starttime="-ss $2"
+	fi
+  if [ -n "$4" ]; then output="$4"; croptime="-to $3";
+	fi
 	read -p "Enter fade duration in seconds: " -ei 2 fadeduration
 	if ! [[ "$fadeduration" =~ ^[0-9]+$ ]] || [[ "$fadeduration" -eq 2 ]]; then 
 		fadeduration=2 
