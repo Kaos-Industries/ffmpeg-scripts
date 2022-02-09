@@ -2,7 +2,7 @@
 set -e
 usage() {
 	echo
-	echo "Pass a source, a start time, an end time and an output name."
+	echo "Pass a source, a start time, an output name and an end time."
 	echo "usage: $(basename "$0") source_file starttime croptime output_file"
 	echo " -h --help        Print this help."
 	echo " -f --no-preset   Disable the ultrafast preset to produce a final file."
@@ -13,10 +13,10 @@ else
 	preset="-preset ultrafast"
 	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
-	wmlength="$(echo $length1 - 2 | bc)"
+	wmlength="$(echo $length1 - 4 | bc)"
 	if [ -n "$2" ]; then starttime="-ss $2"
 	fi
-  if [ -n "$3" ]; then croptime="-to $3"
+  if [ -n "$4" ]; then croptime="-to $4"
 	fi
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
 	eval set -- "$options"
@@ -48,7 +48,7 @@ else
 	else echo "Using fade duration of $fadeduration."
 	fi
 	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=0:d=3,fade=out:st=$wmlength:d=3[v2];"
- 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.08[wm_scaled][video];"
+ 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
 1) Top right
 2) Top left
@@ -93,9 +93,11 @@ case $ans in
 		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
-	ffmpeg -y $starttime -i "$1" $croptime -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
+	ffmpeg -y -i "$1" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
 	-movflags +faststart \
 	$preset \
+	$starttime \
+	$croptime \
 	-filter_complex \
  	"color=black:16x16:d=$total[base];
 	[0:v]scale=-2:'max(1080,ih)',setpts=PTS-STARTPTS[v0];
@@ -107,7 +109,7 @@ case $ans in
 	$wmstream2
 	$wmstream3
 	[0:a][1:a]acrossfade=d=$fadeduration[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$4"
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$3"
 	unset fadetime
 fi
 
