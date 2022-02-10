@@ -27,7 +27,7 @@ else
 	  length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$i")"
 	  length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4)"
 		if [[ -z "$fadetime" ]]; then fadetime="$(echo "$length1" - "$fadeduration" | tr -d $'\r' | bc)" && 
-			echo "Defaulting to adding fade near the end of the first input." 
+			echo "Defaulting to adding fade near the end of the first input."
 		fi
 	 	total=$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)
 		ffmpeg -y -loop 1 -t 2 -i "$img" -i "$i" -i "outro.mp4" \

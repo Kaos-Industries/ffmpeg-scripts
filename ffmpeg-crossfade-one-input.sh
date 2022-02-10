@@ -102,7 +102,7 @@ case $ans in
 	[tmp][v1]overlay,setsar=1[tmp2];
 	$wmstream2
 	$wmstream3
-	[0:a][1:a]acrossfade=d=$fadeduration[outa]" \
+	[0:a][1:a]acrossfade=d=$fadeduration,asetpts=PTS-STARTPTS+(($fadetime)/TB)[outa]" \
 	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$2"
 	unset fadetime
 fi
