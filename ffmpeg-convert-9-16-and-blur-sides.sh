@@ -52,31 +52,31 @@ else
 3) Bottom left
 4) No watermark
 " ans
-	case $ans in
-    1)  echo "Defaulting to top-right position."
-        wmpos="W-w-100:80"
-        wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"				
-				;;
-    2)  echo
-				echo "Positioning watermark at top-left."
-				wmpos="100:80"
-				wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
-				;;
-    3)  echo
-				echo "Positioning watermark at bottom-left."
-				wmpos="100:H-h-80"
-				wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
-				;;
-		4)	echo
-				echo "Disabling watermark."
-				unset wmstream1
-				unset wmstream2
-				wmstream3="[tmp2]setsar=1[outv];"
-				;;
-    *)  echo "WARNING: invalid option selected, defaulting to top-right position."
-				wmpos="W-w-100:80"
-				wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
-		    ;;
+case $ans in
+  1)  echo "Defaulting to bottom-left position."
+      wmpos="100:H-h-80"
+      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"				
+			;;
+  2)  echo
+			echo "Positioning watermark at top-left."
+			wmpos="100:80"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
+		  ;;
+  3)  echo
+			echo "Positioning watermark at top-right."
+			wmpos="W-w-100:80"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
+			;;
+	4)  echo
+			echo "Disabling watermark."
+			unset wmstream1
+			unset wmstream2
+			wmstream3="[tmp2]setsar=1[outv];"
+			;;
+  *)  echo "WARNING: invalid option selected, defaulting to bottom-left position."
+			wmpos="100:H-h-80"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
+      ;;
 	esac
 	read -p "Start fade at custom time in first input? [y/N] " -n1 -r
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
@@ -105,7 +105,8 @@ else
 	[tmp][v1]overlay,setsar=1[tmp2];
 	$wmstream2
 	$wmstream3
-	[0:a][1:a]acrossfade=d=$fadeduration[outa]" \
+	[0:a]afade=out:st=$fadetime:d=$fadeduration[0a];
+	[0a][1:a]concat=n=2:v=0:a=1[outa]" \
 	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus "$output"
 	unset fadetime
 fi

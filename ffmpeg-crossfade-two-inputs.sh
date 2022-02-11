@@ -59,19 +59,19 @@ else
 4) No watermark
 " ans
 case $ans in
-  1)  echo "Defaulting to top-right position."
-      wmpos="W-w-100:80"
-      wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"				
+  1)  echo "Defaulting to bottom-left position."
+      wmpos="100:H-h-80"
+      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"				
 			;;
   2)  echo
 			echo "Positioning watermark at top-left."
 			wmpos="100:80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
 		  ;;
   3)  echo
-			echo "Positioning watermark at bottom-left."
-			wmpos="100:H-h-80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
+			echo "Positioning watermark at top-right."
+			wmpos="W-w-100:80"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
 			;;
 	4)  echo
 			echo "Disabling watermark."
@@ -79,9 +79,9 @@ case $ans in
 			unset wmstream2
 			wmstream3="[tmp2]setsar=1[outv];"
 			;;
-  *)  echo "WARNING: invalid option selected, defaulting to top-right position."
-			wmpos="W-w-100:80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:format=auto:shortest=1[outv];"
+  *)  echo "WARNING: invalid option selected, defaulting to bottom-left position."
+			wmpos="100:H-h-80"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
       ;;
 	esac
 	read -p "Start fade at custom time in first input? [y/N] " -n1 -r
@@ -121,13 +121,14 @@ case $ans in
 	[tmp2][v2]overlay,setsar=1[video]; 
 	$wmstream1 
 	$wmstream2 
-	$wmstream3 
-	[0:a][1:a]acrossfade=d=$fadeduration1,asetpts=PTS-STARTPTS[aud_tmp]; 
-	[aud_tmp][2:a]acrossfade=d=$fadeduration2,asetpts=PTS-STARTPTS[outa]" \
+	$wmstream3
+	[0:a]afade=out:st=$fadetime1:d=$fadeduration1[0a];
+	[1:a]afade=out:st=$fadetime2:d=$fadeduration2[1a];
+	[0a][1a][2:a]concat=n=3:v=0:a=1[outa]" \
 	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$3"
 	unset fadetime1
 	unset fadetime2
 fi
 
-
 # -r 25     needed or not?
+

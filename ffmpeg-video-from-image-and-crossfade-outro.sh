@@ -38,7 +38,8 @@ else
 		[2:v]format=yuva420p,fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(($fadetime)/TB)[v1]; \
 		[base][v0]overlay[tmp]; \
 		[tmp][v1]overlay,format=yuv420p[fv]; \
-		[1:a][2:a]acrossfade=d=$fadeduration[fa]" \
+		[1:a]afade=out:st=$fadetime:d=$fadeduration[1a];
+		[1a][2:a]concat=n=2:v=0:a=1[outa]" \
 		-map [fv] -map [fa] -map -0:v:1 -map_metadata -1 -c:v libx264 -c:a libopus "${i%.*}.mp4"
 		unset fadetime
 	done
