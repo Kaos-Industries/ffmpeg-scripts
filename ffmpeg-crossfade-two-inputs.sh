@@ -53,9 +53,9 @@ else
 	wmstream1="[3:v]lut=a=val*0.7,fade=in:st=10:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v3];"
  	wmstream2="[v3][video]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
-1) Top right
+1) Bottom left
 2) Top left
-3) Bottom left
+3) Top right
 4) No watermark
 " ans
 case $ans in
