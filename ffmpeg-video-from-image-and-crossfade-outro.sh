@@ -66,12 +66,10 @@ else
 		[base][v0]overlay[tmp];
 		[tmp][v2]overlay,format=yuv420p[fv];
 		[1:a]afade=out:st=$fadetime:d=$fadeduration[1a];
-		[1a][2:a]concat=n=2:v=0:a=1[fa]" \
+		[1a][2:a]acrossfade=d=$fadeduration[fa]" \
 		-map [fv] -map [fa] -map -0:v:1 -map_metadata -1 -c:v libx264 -c:a libopus "${i%.*}.mp4"
 		unset fadetime
 	done
 fi
 
-# atrim=35.5:3620
-# -t 2
-# acrossfade=d=$fadeduration
+# concat=n=2:v=0:a=1
