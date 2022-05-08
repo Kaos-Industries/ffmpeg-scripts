@@ -3,7 +3,7 @@ set -e
 usage() {
 	echo
 	echo "Pass two sources and an output name."
-	echo "usage: $(basename "$0") source1.mp4 source2.mkv Final.mp4"
+	echo "usage: `basename $0` source1.mp4 source2.mkv Final.mp4"
 	echo " -h --help     Print this help."
 	echo " -f --final    Disable the ultrafast preset to produce a final file."
 	exit
@@ -41,13 +41,13 @@ else
 	read -p "Enter first fade duration in seconds: " -ei 2 fadeduration1
 	if ! [[ "$fadeduration1" =~ ^[0-9]+$ ]] || [[ "$fadeduration1" -eq 2 ]]; then 
 		fadeduration1=2 
-		echo "WARNING: defaulting duration of first fade to $fadeduration1 seconds."
+		echo "WARNING: defaulting first fade to duration of $fadeduration1 seconds."
 	else echo "Setting first fade duration to $fadeduration1."
 	fi
 	read -p "Enter second fade duration in seconds: " -ei 2 fadeduration2
 	if ! [[ "$fadeduration2" =~ ^[0-9]+$ ]] || [[ "$fadeduration2" -eq 2 ]]; then 
 		fadeduration2=2 
-		echo "WARNING: defaulting duration of second fade to $fadeduration2 seconds."
+		echo "WARNING: defaulting second fade to duration of $fadeduration2 seconds."
 	else echo "Setting second fade duration to $fadeduration2."
 	fi
 	wmstream1="[3:v]lut=a=val*0.7,fade=in:st=10:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v3];"

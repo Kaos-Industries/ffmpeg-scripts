@@ -3,7 +3,7 @@ set -e
 usage() {
 	echo
 	echo "Pass a source and an output name."
-	echo "usage: $(basename "$0") source.mp4 Final.mp4"
+	echo "usage: `basename $0` source.mp4 Final.mp4"
 	echo " -h --help     Print this help."
 	echo " -f --final    Disable the ultrafast preset to produce a final file."
 	exit
@@ -43,7 +43,7 @@ else
 		echo "WARNING: defaulting to $fadeduration seconds."
 	else echo "Using fade duration of $fadeduration."
 	fi
-	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=5:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v2];"
+	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=10:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v2];"
  	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
 1) Bottom left
@@ -94,7 +94,7 @@ case $ans in
 	$preset \
 	-filter_complex \
  	"color=black:16x16:d=$total[base];
-	[0:v]scale=-2:'max(1080,ih)',setpts=PTS-STARTPTS[v0];
+	[0:v]format=yuva420p,scale=-2:'max(1080,ih)',setpts=PTS-STARTPTS[v0];
 	[1:v]fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(($fadetime)/TB)[v1];
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
@@ -104,7 +104,7 @@ case $ans in
 	$wmstream3
 	[0:a]afade=out:st=$fadetime:d=$fadeduration[0a];
 	[0a][1:a]concat=n=2:v=0:a=1[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$2"
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus "$2"
 	unset fadetime
 fi
 

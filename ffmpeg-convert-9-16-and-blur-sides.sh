@@ -14,7 +14,7 @@ else
 	preset="-preset ultrafast"
 	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
-	wmlength="$(echo $length1 - 3 | bc)"
+	wmlength="$(echo $length1 - 5 | bc)"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
 	eval set -- "$options"
 	while true
