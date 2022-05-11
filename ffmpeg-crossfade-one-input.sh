@@ -43,7 +43,7 @@ else
 		echo "WARNING: defaulting to $fadeduration seconds."
 	else echo "Using fade duration of $fadeduration."
 	fi
-	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=10:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v2];"
+	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=15:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v2];"
  	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
 1) Bottom left
@@ -53,18 +53,18 @@ else
 " ans
 case $ans in
   1)  echo "Defaulting to bottom-left position."
-      wmpos="100:H-h-80"
-      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"				
+      wmpos="100:H-h-50"
+      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"				
 			;;
   2)  echo
 			echo "Positioning watermark at top-left."
-			wmpos="100:80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
+			wmpos="100:50"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 		  ;;
   3)  echo
 			echo "Positioning watermark at top-right."
-			wmpos="W-w-100:80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
+			wmpos="W-w-100:50"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 			;;
 	4)  echo
 			echo "Disabling watermark."
@@ -73,8 +73,8 @@ case $ans in
 			wmstream3="[tmp2]setsar=1[outv];"
 			;;
   *)  echo "WARNING: invalid option selected, defaulting to bottom-left position."
-			wmpos="100:H-h-80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
+			wmpos="100:H-h-50"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
       ;;
 	esac
 	read -p "Start fade at custom time in first input? [y/N] " -n1 -r
@@ -94,12 +94,12 @@ case $ans in
 	$preset \
 	-filter_complex \
  	"color=black:16x16:d=$total[base];
-	[0:v]format=yuva420p,scale=-2:'max(1080,ih)',setpts=PTS-STARTPTS[v0];
+	[0:v]scale=-2:'max(1080,ih)',setpts=PTS-STARTPTS[v0];
 	[1:v]fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(($fadetime)/TB)[v1];
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp];
-	[tmp][v1]overlay,setsar=1[tmp2];
+	[tmp][v1]overlay,setsar=1,format=yuv420p[tmp2];
 	$wmstream2
 	$wmstream3
 	[0:a]afade=out:st=$fadetime:d=$fadeduration[0a];

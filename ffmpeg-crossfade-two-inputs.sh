@@ -50,7 +50,7 @@ else
 		echo "WARNING: defaulting second fade to duration of $fadeduration2 seconds."
 	else echo "Setting second fade duration to $fadeduration2."
 	fi
-	wmstream1="[3:v]lut=a=val*0.7,fade=in:st=10:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v3];"
+	wmstream1="[3:v]lut=a=val*0.7,fade=in:st=15:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v3];"
  	wmstream2="[v3][video]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
 1) Bottom left
@@ -60,18 +60,18 @@ else
 " ans
 case $ans in
   1)  echo "Defaulting to bottom-left position."
-      wmpos="100:H-h-80"
-      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"				
+      wmpos="100:H-h-50"
+      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"				
 			;;
   2)  echo
 			echo "Positioning watermark at top-left."
-			wmpos="100:80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
+			wmpos="100:50"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 		  ;;
   3)  echo
 			echo "Positioning watermark at top-right."
-			wmpos="W-w-100:80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
+			wmpos="W-w-100:50"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 			;;
 	4)  echo
 			echo "Disabling watermark."
@@ -80,8 +80,8 @@ case $ans in
 			wmstream3="[tmp2]setsar=1[outv];"
 			;;
   *)  echo "WARNING: invalid option selected, defaulting to bottom-left position."
-			wmpos="100:H-h-80"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1[outv];"
+			wmpos="100:H-h-50"
+			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
       ;;
 	esac
 	read -p "Start fade at custom time in first input? [y/N] " -n1 -r
@@ -118,7 +118,7 @@ case $ans in
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp]; 
 	[tmp][v1]overlay[tmp2]; 
-	[tmp2][v2]overlay,setsar=1[video]; 
+	[tmp2][v2]overlay,setsar=1,format=yuv420p[video]; 
 	$wmstream1 
 	$wmstream2 
 	$wmstream3
