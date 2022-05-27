@@ -11,7 +11,24 @@ usage() {
 if [ $# -lt 2 ]; then usage
 else
 	preset="-preset ultrafast"
-	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
+	if [ ! -z "$3" ]; then
+	starttime="$3" 
+	start_opt="-ss $3" 
+	else 
+	starttime=0
+	start_opt=""
+	fi 
+	if [ ! -z "$4" ]; then
+	endtime="$4" 
+	end_opt="-to $4" 
+	else 
+	endtime="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
+	end_opt=""
+	fi
+	length1="$(echo $endtime - $starttime | bc)"
+	echo $starttime
+	echo $endtime
+	echo $length1
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
 	wmlength="$(echo $length1 - 5 | bc)"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
@@ -53,17 +70,17 @@ else
 " ans
 case $ans in
   1)  echo "Defaulting to bottom-left position."
-      wmpos="100:H-h-50"
+      wmpos="80:H-h-50"
       wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"				
 			;;
   2)  echo
 			echo "Positioning watermark at top-left."
-			wmpos="100:50"
+			wmpos="80:50"
 			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 		  ;;
   3)  echo
 			echo "Positioning watermark at top-right."
-			wmpos="W-w-100:50"
+			wmpos="W-w-80:50"
 			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 			;;
 	4)  echo
@@ -73,7 +90,7 @@ case $ans in
 			wmstream3="[tmp2]setsar=1[outv];"
 			;;
   *)  echo "WARNING: invalid option selected, defaulting to bottom-left position."
-			wmpos="100:H-h-50"
+			wmpos="80:H-h-50"
 			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
       ;;
 	esac
@@ -89,7 +106,7 @@ case $ans in
 		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
-	ffmpeg -y -i "$1" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
+	ffmpeg -y	$start_opt -i "$1" $end_opt -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
 	-movflags +faststart \
 	$preset \
 	-filter_complex \
@@ -108,3 +125,5 @@ case $ans in
 	unset fadetime
 fi
 
+# trim=153.6:426,
+# atrim=153.6:426,
