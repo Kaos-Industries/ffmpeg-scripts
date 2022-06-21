@@ -26,9 +26,9 @@ else
 	end_opt=""
 	fi
 	length1="$(echo $endtime - $starttime | bc)"
-	echo $starttime
-	echo $endtime
-	echo $length1
+	# echo $starttime
+	# echo $endtime
+	# echo $length1
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
 	wmlength="$(echo $length1 - 5 | bc)"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
@@ -124,6 +124,3 @@ case $ans in
 	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus "$2"
 	unset fadetime
 fi
-
-# trim=153.6:426,
-# atrim=153.6:426,
