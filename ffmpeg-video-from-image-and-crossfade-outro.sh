@@ -88,10 +88,6 @@ case $ans in
 	if [[ -z "$fadetime" ]]; then fadetime="$(echo "$length1" - "$fadeduration" | tr -d $'\r' | bc)" && 
 		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
 	fi
-	echo $fadetime
-	echo $fadeduration
-	echo $length1
-	echo $length2
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
 	ffmpeg -y -loop 1 -t 2 -i "$1" -i "$2" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
 	-movflags faststart \
@@ -111,5 +107,3 @@ case $ans in
 	-map "[outv]" -map "[outa]" -map -0:v:1 -map_metadata -1 -c:v libx264 -c:a libopus "$3"
 	unset fadetime
 fi
-
-# concat=n=2:v=0:a=1
