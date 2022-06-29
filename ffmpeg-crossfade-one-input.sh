@@ -26,9 +26,6 @@ else
 	end_opt=""
 	fi
 	length1="$(echo $endtime - $starttime | bc)"
-	# echo $starttime
-	# echo $endtime
-	# echo $length1
 	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
 	wmlength="$(echo $length1 - 5 | bc)"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
