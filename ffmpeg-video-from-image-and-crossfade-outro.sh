@@ -107,3 +107,8 @@ case $ans in
 	-map "[outv]" -map "[outa]" -map -0:v:1 -map_metadata -1 -c:v libx264 -c:a libopus "$3"
 	unset fadetime
 fi
+
+# EXTRA STREAM FOR ARTIST IMAGE
+# [4:v]fade=in:st=0.2:d=2:alpha=1,fade=out:st=45:d=3:alpha=1[v4];
+# [v4][outv]scale2ref=w=oh*mdar:h=ih*0.3[wm_scaled][video];
+# [video][wm_scaled]overlay=W-w-65:65:shortest=1:format=auto[final];" 
