@@ -2,8 +2,8 @@
 set -e
 usage() {
 	echo
-	echo "Pass two sources and an output name."
-	echo "usage: `basename $0` source1.mp4 source2.mkv Final.mp4"
+	echo "Pass two sources and an output name. To crop, add optional start and end times for each source."
+	echo "usage: `basename $0` source1.mp4 source2.mkv Final.mp4 [start_time1] [end_time1] [start_time2] [end_time2]"
 	echo " -h --help     Print this help."
 	echo " -f --final    Disable the ultrafast preset to produce a final file."
 	exit
@@ -11,10 +11,38 @@ usage() {
 if [ $# -lt 2 ]; then usage
 else
 	preset="-preset ultrafast"
-	length1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
-	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$2" | tr -d $'\r')"
+	if [ ! -z "$4" ]; then
+	starttime1="$4" 
+	start_opt1="-ss $4" 
+	else 
+	starttime1=0
+	start_opt1=""
+	fi 
+	if [ ! -z "$5" ]; then
+	endtime1="$5" 
+	end_opt1="-to $5" 
+	else 
+	endtime1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
+	end_opt1=""
+	fi
+	if [ ! -z "$6" ]; then
+	starttime2="$6" 
+	start_opt2="-ss $6" 
+	else 
+	starttime2=0
+	start_opt2=""
+	fi 
+	if [ ! -z "$7" ]; then
+	endtime2="$7" 
+	end_opt2="-to $7" 
+	else 
+	endtime2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
+	end_opt2=""
+	fi
+	length1="$(echo $endtime1 - $starttime1 | bc)"
+	length2="$(echo $endtime2 - $starttime2 | bc)"
 	length3="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
-	wmlength="$(echo $length2 - 5 | bc)"
+	wmlength="$(echo \($length1 + $length2\) - 5 | bc)"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
 	eval set -- "$options"
 	while true
@@ -107,24 +135,25 @@ case $ans in
 		echo "Defaulting to adding fade -$fadeduration2 seconds from second input at $fadetime2 seconds." 
 	fi
  	total="$(echo "$length1 + $length2 + $length3 - $fadeduration1 - $fadeduration2" | tr -d $'\r' | bc)"
-	ffmpeg -y -i "$1" -i "$2" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
+	ffmpeg -y $start_opt1 $end_opt1 -i "$1" $start_opt2 $end_opt2 -i "$2" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
 	-movflags faststart \
 	$preset \
 	-filter_complex \
 	"color=black:16x16:d=$total[base];
 	[0:v]scale=-2:'max(1080,ih)',setpts=PTS-STARTPTS[v0]; 
-	[1:v]fade=in:st=0:d=$fadeduration1:alpha=1,setpts=PTS-STARTPTS+(($fadetime1)/TB)[v1]; 
+	[1:v]scale=-2:'max(1080,ih)',fade=in:st=0:d=$fadeduration1:alpha=1,setpts=PTS-STARTPTS+(($fadetime1)/TB)[v1]; 
 	[2:v]fade=in:st=0:d=$fadeduration2:alpha=1,setpts=PTS-STARTPTS+(($fadetime2)/TB)[v2]; 
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp]; 
 	[tmp][v1]overlay[tmp2]; 
 	[tmp2][v2]overlay,setsar=1,format=yuv420p[video]; 
 	$wmstream1 
-	$wmstream2 
+	$wmstream2
 	$wmstream3
 	[0:a]afade=out:st=$fadetime1:d=$fadeduration1[0a];
-	[1:a]afade=out:st=$fadetime2:d=$fadeduration2[1a];
-	[0a][1a][2:a]concat=n=3:v=0:a=1[outa]" \
+	[1:a]afade=out:st=$fadetime2:d=$fadeduration2,asetpts=PTS-STARTPTS+(($fadetime1)/TB)[1a];
+	[2:a]asetpts=PTS-STARTPTS+(($fadetime2)/TB)[2a];
+	[0a][1a][2a]concat=n=3:v=0:a=1[outa]" \
 	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$3"
 	unset fadetime1
 	unset fadetime2
