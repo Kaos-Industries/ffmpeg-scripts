@@ -150,14 +150,13 @@ case $ans in
 	$wmstream1 
 	$wmstream2
 	$wmstream3
-	[0:a]afade=out:st=$fadetime1:d=$fadeduration1[0a];
-	[1:a]afade=out:st=$fadetime2:d=$fadeduration2,asetpts=PTS-STARTPTS+(($fadetime1)/TB)[1a];
-	[2:a]asetpts=PTS-STARTPTS+(($fadetime2)/TB)[2a];
-	[0a][1a][2a]concat=n=3:v=0:a=1[outa]" \
+	[0:a][1:a]acrossfade=d=$fadeduration1[aud];
+	[aud][2:a]acrossfade=d=$fadeduration2[outa]" \
 	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$3"
 	unset fadetime1
 	unset fadetime2
 fi
 
-# -r 25     needed or not?
-
+# afade=out:st=$fadetime1:d=$fadeduration1
+# afade=out:st=0:d=$fadeduration2
+# [0a][1a][2:a]concat=n=3:v=0:a=1[outa]
