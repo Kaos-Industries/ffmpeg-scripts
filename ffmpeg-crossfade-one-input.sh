@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -ex
 usage() {
 	echo
 	echo "Pass a source and an output name."
@@ -10,24 +10,7 @@ usage() {
 }
 if [ $# -lt 2 ]; then usage
 else
-	preset="-preset ultrafast"
-	if [ ! -z "$3" ]; then
-	starttime="$3" 
-	start_opt="-ss $3" 
-	else 
-	starttime=0
-	start_opt=""
-	fi 
-	if [ ! -z "$4" ]; then
-	endtime="$4" 
-	end_opt="-to $4" 
-	else 
-	endtime="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
-	end_opt=""
-	fi
-	length1="$(echo $endtime - $starttime | bc)"
-	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
-	wmlength="$(echo $length1 - 5 | bc)"
+preset="-preset ultrafast"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
 	eval set -- "$options"
 	while true
@@ -50,7 +33,24 @@ else
 			break;;    
 		esac
 		shift
-	done	
+	done
+if [ ! -z "$3" ]; then
+starttime="$3" 
+start_opt="-ss $3" 
+else 
+starttime=0
+start_opt=""
+fi 
+if [ ! -z "$4" ]; then
+endtime="$4" 
+end_opt="-to $4" 
+else 
+endtime="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
+end_opt=""
+fi
+length1="$(echo $endtime - $starttime | bc)"
+length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
+wmlength="$(echo $length1 - 5 | bc)"	
 	read -p "Enter fade duration in seconds: " -ei 2 fadeduration
 	if ! [[ "$fadeduration" =~ ^[0-9]+$ ]] || [[ "$fadeduration" -eq 2 ]]; then 
 		fadeduration=2 
@@ -58,7 +58,7 @@ else
 	else echo "Using fade duration of $fadeduration."
 	fi
 	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=15:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v2];"
- 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
+ 	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.06[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
 1) Bottom left
 2) Top left
@@ -103,7 +103,7 @@ case $ans in
 		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
-	ffmpeg -y	$start_opt $end_opt -i "$1"  -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
+	ffmpeg -y	$start_opt $end_opt -i "$1" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
 	-movflags +faststart \
 	$preset \
 	-filter_complex \
@@ -113,7 +113,7 @@ case $ans in
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp];
-	[tmp][v1]overlay,setsar=1,format=yuv420p[tmp2];
+	[tmp][v1]overlay,setsar=1[tmp2];
 	$wmstream2
 	$wmstream3
 	[0:a]afade=out:st=$fadetime:d=$fadeduration[0a];
