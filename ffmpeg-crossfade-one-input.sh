@@ -1,5 +1,5 @@
 #!/bin/bash
-set -ex
+set -e
 usage() {
 	echo
 	echo "Pass a source and an output name."
