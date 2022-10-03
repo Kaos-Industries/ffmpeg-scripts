@@ -99,7 +99,7 @@ case $ans in
 		echo "WARNING: using custom fade time of $fadetime seconds from first input.".
 	done
   fi
-	if [[ -z "$fadetime" ]]; then fadetime="$(echo "$length1" - "$fadeduration" | tr -d $'\r' | bc)" && 
+	if [[ -z "$fadetime" ]]; then fadetime="$(echo "$length1" - "$fadeduration" | tr -d $'\r' | bc)" &&
 		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
@@ -121,3 +121,5 @@ case $ans in
 	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus "$2"
 	unset fadetime
 fi
+
+# loudnorm=I=-18 
