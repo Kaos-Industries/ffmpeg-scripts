@@ -108,7 +108,7 @@ case $ans in
 	$preset \
 	-filter_complex \
  	"color=black:16x16:d=$total[base];
-	[0:v]scale=-2:'max(1080,ih)',setpts=PTS-STARTPTS[v0];
+	[0:v]scale=-2:'max(1080,ih)':flags=lanczos,setpts=PTS-STARTPTS[v0];
 	[1:v]fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(($fadetime)/TB)[v1];
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
@@ -118,7 +118,7 @@ case $ans in
 	$wmstream3
 	[0:a]afade=out:st=$fadetime:d=$fadeduration[0a];
 	[0a][1:a]concat=n=2:v=0:a=1[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus "$2"
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus "$2" 
 	unset fadetime
 fi
 
