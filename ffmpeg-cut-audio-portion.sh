@@ -1,5 +1,8 @@
 #!/bin/bash
-set -e
+set -o errexit
+set -o nounset
+set -o pipefail
+
 if [ $# -lt 4 ]; then
   echo "Pass a link to a file, a start timestamp, an end timestamp and an output name."
   echo "Usage: $(basename "$0") /path/to/file.mp3 00:00:00.00 00:00:00.00 output.mp3"

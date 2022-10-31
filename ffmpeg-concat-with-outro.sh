@@ -1,5 +1,8 @@
 #!/bin/bash
-set -e
+set -o errexit
+set -o nounset
+set -o pipefail
+
 if [ $# -lt 2 ]; then
 	echo "USAGE: Pass a video input and the desired output file."
 	echo "Example: script.sh source.mp4"

@@ -1,5 +1,8 @@
 #!/bin/bash
-set -e
+set -o errexit
+set -o nounset
+set -o pipefail
+
 usage() {
 	echo
 	echo "Pass two sources and an output name. To crop, add optional start and end times for each source."
