@@ -110,17 +110,17 @@ case $ans in
 	$preset \
 	-filter_complex \
  	"color=black:16x16:d=$total[base];
-	[0:v]scale=-2:'max(1080,ih)':flags=lanczos,setpts=PTS-STARTPTS[v0];
+	[0:v]scale=-2:'max(1082,ih)':flags=lanczos,setpts=PTS-STARTPTS[v0];
 	[1:v]fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(($fadetime)/TB)[v1];
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp];
-	[tmp][v1]overlay,setsar=1[tmp2];
+	[tmp][v1]overlay,setsar=1,format=yuv420p[tmp2];
 	$wmstream2
 	$wmstream3
 	[0:a]afade=out:st=$fadetime:d=$fadeduration[0a];
 	[0a][1:a]concat=n=2:v=0:a=1[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus "$2" 
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 15 -c:a libopus "$2" 
 	unset fadetime
 fi
 
