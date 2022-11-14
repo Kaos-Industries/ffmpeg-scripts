@@ -124,4 +124,4 @@ case $ans in
 	unset fadetime
 fi
 
-# loudnorm=I=-12:TP=-1.5:LRA=11:print_format=summary
+# loudnorm=I=-12:dual_mono=true:TP=-1.5:LRA=11:print_format=summary
