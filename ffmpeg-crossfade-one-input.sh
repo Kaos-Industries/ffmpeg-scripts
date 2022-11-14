@@ -19,40 +19,42 @@ preset="-preset ultrafast"
 	do
 		case $1 in
 		-f|--final) 
-		    preset=""
-		    ;;
+	    preset=""
+	    ;;
 		-h|--help) 
-		    usage
+	    usage
 			shift
-		    ;;
+	    ;;
 		--)
-		    shift
-		    break;;
+	    shift
+	    break
+	    ;;
 		\?) 
 			echo "$OPTARG is not a valid option."
 			usage
 			shift
-			break;;    
+			break
+			;;    
 		esac
 		shift
 	done
 if [ ! -z "$3" ]; then
-starttime="$3" 
-start_opt="-ss $3" 
-else 
-starttime=0
-start_opt=""
-fi 
-if [ ! -z "$4" ]; then
-endtime="$4" 
-end_opt="-to $4" 
-else 
-endtime="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
-end_opt=""
-fi
-length1="$(echo $endtime - $starttime | bc)"
-length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
-wmlength="$(echo $length1 - 5 | bc)"	
+	starttime="$3" 
+	start_opt="-ss $3" 
+	else 
+	starttime=0
+	start_opt=""
+	fi 
+	if [ ! -z "$4" ]; then
+	endtime="$4" 
+	end_opt="-to $4" 
+	else 
+	endtime="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
+	end_opt=""
+	fi
+	length1="$(echo $endtime - $starttime | bc)"
+	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
+	wmlength="$(echo $length1 - 5 | bc)"	
 	read -p "Enter fade duration in seconds: " -ei 2 fadeduration
 	if ! [[ "$fadeduration" =~ ^[0-9]+$ ]] || [[ "$fadeduration" -eq 2 ]]; then 
 		fadeduration=2 
@@ -67,31 +69,31 @@ wmlength="$(echo $length1 - 5 | bc)"
 3) Top right
 4) No watermark
 " ans
-case $ans in
-  1)  echo "Defaulting to bottom-left position."
-      wmpos="80:H-h-50"
-      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"				
-			;;
-  2)  echo
-			echo "Positioning watermark at top-left."
-			wmpos="80:50"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
-		  ;;
-  3)  echo
-			echo "Positioning watermark at top-right."
-			wmpos="W-w-80:50"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
-			;;
-	4)  echo
-			echo "Disabling watermark."
-			unset wmstream1
-			unset wmstream2
-			wmstream3="[tmp2]setsar=1[outv];"
-			;;
-  *)  echo "WARNING: invalid option selected, defaulting to bottom-left position."
-			wmpos="80:H-h-50"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
-      ;;
+	case $ans in
+	  1)  echo "Defaulting to bottom-left position."
+	      wmpos="80:H-h-50"
+	      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"				
+				;;
+	  2)  echo
+				echo "Positioning watermark at top-left."
+				wmpos="80:50"
+				wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
+			  ;;
+	  3)  echo
+				echo "Positioning watermark at top-right."
+				wmpos="W-w-80:50"
+				wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
+				;;
+		4)  echo
+				echo "Disabling watermark."
+				unset wmstream1
+				unset wmstream2
+				wmstream3="[tmp2]setsar=1[outv];"
+				;;
+	  *)  echo "WARNING: invalid option selected, defaulting to bottom-left position."
+				wmpos="80:H-h-50"
+				wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
+	      ;;
 	esac
 	read -p "Start fade at custom time in first input? [y/N] " -n1 -r
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
