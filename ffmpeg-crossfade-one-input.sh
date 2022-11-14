@@ -98,7 +98,7 @@ case $ans in
 		while [[ -z "$fadetime" ]]; do
 		echo
 		read -p "Enter custom start time in seconds: " fadetime
-		echo "WARNING: using custom fade time of $fadetime seconds from first input.".
+		echo "WARNING: using custom fade time of $fadetime seconds from first input."
 	done
   fi
 	if [[ -z "$fadetime" ]]; then fadetime="$(echo "$length1" - "$fadeduration" | tr -d $'\r' | bc)" &&
@@ -124,4 +124,4 @@ case $ans in
 	unset fadetime
 fi
 
-# loudnorm=I=-18 
+# loudnorm=I=-12:TP=-1.5:LRA=11:print_format=summary
