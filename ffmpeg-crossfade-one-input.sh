@@ -112,7 +112,7 @@ if [ ! -z "$3" ]; then
 	$preset \
 	-filter_complex \
  	"color=black:16x16:d=$total[base];
-	[0:v]scale=-2:'max(1082,ih)':flags=lanczos,setpts=PTS-STARTPTS[v0];
+	[0:v]scale=-2:'max(1080,ih)':flags=lanczos,setpts=PTS-STARTPTS[v0];
 	[1:v]fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(($fadetime)/TB)[v1];
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
