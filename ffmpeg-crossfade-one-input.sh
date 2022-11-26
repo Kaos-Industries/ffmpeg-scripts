@@ -107,7 +107,8 @@ if [ ! -z "$3" ]; then
 		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
-	ffmpeg -y	$start_opt $end_opt -i "$1" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
+	ffmpeg -y -hide_banner \
+	$start_opt $end_opt -i "$1" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
 	-movflags +faststart \
 	$preset \
 	-filter_complex \
@@ -122,7 +123,7 @@ if [ ! -z "$3" ]; then
 	$wmstream3
 	[0:a]afade=out:st=$fadetime:d=$fadeduration[0a];
 	[0a][1:a]concat=n=2:v=0:a=1[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 15 -c:a libopus -pix_fmt yuv420p -loglevel verbose "$2" 
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 15 -c:a libopus -pix_fmt yuv420p "$2" 
 	unset fadetime
 fi
 

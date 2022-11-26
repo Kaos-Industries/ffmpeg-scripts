@@ -91,7 +91,8 @@ case $ans in
 		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
-	ffmpeg -y -loop 1 -t 2 -i "$1" -i "$2" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
+	ffmpeg -y -hide_banner \
+	-loop 1 -t 2 -i "$1" -i "$2" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
 	-movflags faststart \
 	$preset \
 	-filter_complex \
