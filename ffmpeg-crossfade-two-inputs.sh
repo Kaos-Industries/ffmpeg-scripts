@@ -148,13 +148,13 @@ case $ans in
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp]; 
 	[tmp][v1]overlay[tmp2]; 
-	[tmp2][v2]overlay,setsar=1,format=yuv420p[video]; 
+	[tmp2][v2]overlay,setsar=1[video]; 
 	$wmstream1 
 	$wmstream2
 	$wmstream3
 	[0:a][1:a]acrossfade=d=$fadeduration1[aud];
 	[aud][2:a]acrossfade=d=$fadeduration2[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest "$3"
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest -pix_fmt yuv420p "$3"
 	unset fadetime1
 	unset fadetime2
 fi

@@ -101,12 +101,12 @@ case $ans in
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp];
-	[tmp][v2]overlay,setsar=1,format=yuv420p[tmp2];
+	[tmp][v2]overlay,setsar=1[tmp2];
 	$wmstream2
 	$wmstream3
 	[1:a]afade=out:st=$fadetime:d=$fadeduration[1a];
 	[1a][2:a]acrossfade=d=$fadeduration[outa]" \
-	-map "[outv]" -map "[outa]" -map -0:v:1 -map_metadata -1 -c:v libx264 -c:a libopus "$3"
+	-map "[outv]" -map "[outa]" -map -0:v:1 -map_metadata -1 -c:v libx264 -c:a libopus -pix_fmt yuv420p "$3"
 	unset fadetime
 fi
 

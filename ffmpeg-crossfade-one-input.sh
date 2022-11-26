@@ -117,12 +117,12 @@ if [ ! -z "$3" ]; then
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp];
-	[tmp][v1]overlay,setsar=1,format=yuv420p[tmp2];
+	[tmp][v1]overlay,setsar=1[tmp2];
 	$wmstream2
 	$wmstream3
 	[0:a]afade=out:st=$fadetime:d=$fadeduration[0a];
 	[0a][1:a]concat=n=2:v=0:a=1[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 15 -c:a libopus "$2" 
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 15 -c:a libopus -pix_fmt yuv420p -loglevel verbose "$2" 
 	unset fadetime
 fi
 

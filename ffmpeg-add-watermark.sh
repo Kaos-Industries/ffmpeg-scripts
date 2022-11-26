@@ -118,6 +118,6 @@ case $ans in
   $wmstream3
   [0:a]afade=out:st=$fadetime:d=$fadeduration[0a];
   [0a]concat=n=1:v=0:a=1[outa]" \
-  -map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus "$2"
+  -map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -pix_fmt yuv420p "$2"
   unset fadetime
 fi
