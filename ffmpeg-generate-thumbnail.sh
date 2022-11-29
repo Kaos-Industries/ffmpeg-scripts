@@ -1,13 +1,6 @@
 #!/bin/bash
 set -o errexit
 set -o pipefail
-
-usage() {
-  echo "Pass a source to grab a thumbnail from."
-  echo "Usage: `basename $0` source.mp4"
-  exit
-}
-if [ $# -lt 1 ]; then usage; fi
 shopt -s globstar
 shopt -s nocaseglob
 for video in **/*.{webm,mp4,mkv}; do
