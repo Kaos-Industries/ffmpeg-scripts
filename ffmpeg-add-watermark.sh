@@ -60,7 +60,7 @@ wmlength="$(echo $length1 - 5 | bc)"
   else echo "Using fade duration of $fadeduration."
   fi
   wmstream1="[1:v]lut=a=val*0.7,fade=in:st=15:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v1];"
-  wmstream2="[v1][tmp]scale2ref=w=oh*mdar:h=ih*0.06[wm_scaled][video];"
+  wmstream2="[v1][tmp]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
   read -e -n1 -p "Select watermark position:
 1) Bottom left
 2) Top left
