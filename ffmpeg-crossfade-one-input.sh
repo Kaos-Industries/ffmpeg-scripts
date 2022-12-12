@@ -2,6 +2,8 @@
 set -o errexit
 set -o pipefail
 
+watermark="D:\Users\Hashim\Documents\Projects\YouTube Channel 1\Meta\Watermark\Watermark.png"
+
 usage() {
 	echo
 	echo "Pass a source and an output name."
@@ -10,6 +12,7 @@ usage() {
 	echo " -f --final    Disable the ultrafast preset to produce a final file."
 	exit
 }
+
 if [ $# -lt 2 ]; then usage
 else
 preset="-preset ultrafast"
@@ -38,7 +41,24 @@ preset="-preset ultrafast"
 		esac
 		shift
 	done
-if [ ! -z "$3" ]; then
+
+  height=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of default=nw=1:nk=1 "$1" | tr -d $'\r')
+	colour_space=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_space -of default=nw=1:nk=1 "$1" | tr -d $'\r')
+	colour_trc=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_transfer -of default=nw=1:nk=1 "$1" | tr -d $'\r') # unused
+	colour_primaries=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_primaries -of default=nw=1:nk=1 "$1" | tr -d $'\r') # unused
+
+  # Make sure colour metadata is set to preserve colour and prevent colour shifts
+	if [[ $height -lt 720 && $colour_space == "smpte170m" ]]; then # If input is standard definition and colourspace is BT601 (NTSC)
+	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" # set metadata to BT601 (NTSC)
+  # If input is standard definition and colourspace is BT601 (PAL and SECAM) or unknown
+	elif [[ $height -lt 720 && ($colour_space == "bt470bg" || $colour_space == "unknown") ]]; then 
+	colour_metadata="-colorspace bt470bg -color_trc gamma28 -color_primaries bt470bg" # set metadata to superior/more common PAL/SECAM
+  elif [[ $height -ge 720 ]]; then # If input is high definition
+  colour_metadata="-colorspace bt709 -color_trc bt709 -color_primaries bt709" # set metadata to BT.709
+  else echo "Unrecognised colorspace $color_space detected, leaving colour metadata untouched"
+	fi
+
+	if [ ! -z "$3" ]; then
 	starttime="$3" 
 	start_opt="-ss $3" 
 	else 
@@ -49,11 +69,11 @@ if [ ! -z "$3" ]; then
 	endtime="$4" 
 	end_opt="-to $4" 
 	else 
-	endtime="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
+	endtime="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$1" | tr -d $'\r')"
 	end_opt=""
 	fi
 	length1="$(echo $endtime - $starttime | bc)"
-	length2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
+	length2="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 outro.mp4 | tr -d $'\r')"
 	wmlength="$(echo $length1 - 5 | bc)"	
 	read -p "Enter fade duration in seconds: " -ei 2 fadeduration
 	if ! [[ "$fadeduration" =~ ^[0-9]+$ ]] || [[ "$fadeduration" -eq 2 ]]; then 
@@ -61,6 +81,7 @@ if [ ! -z "$3" ]; then
 		echo "WARNING: defaulting to $fadeduration seconds."
 	else echo "Using fade duration of $fadeduration."
 	fi
+
 	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=15:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v2];"
  	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
@@ -108,7 +129,7 @@ if [ ! -z "$3" ]; then
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
 	ffmpeg -y -hide_banner \
-	$start_opt $end_opt -i "$1" -i "outro.mp4" -loop 1 -i "../Watermark/Watermark.png" \
+	$start_opt $end_opt -i "$1" -i "outro.mp4" -loop 1 -i "$watermark" \
 	-movflags +faststart \
 	$preset \
 	-filter_complex \
@@ -123,8 +144,11 @@ if [ ! -z "$3" ]; then
 	$wmstream3
 	[0:a]afade=out:st=$fadetime:d=$fadeduration[0a];
 	[0a][1:a]concat=n=2:v=0:a=1[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 15 -c:a libopus -pix_fmt yuv420p "$2" 
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 15 -c:a libopus \
+	-pix_fmt yuv420p $colour_metadata "$2" 
 	unset fadetime
 fi
 
 # loudnorm=I=-12:dual_mono=true:TP=-1.5:LRA=11:print_format=summary
+
+# Add to scale filter: :out_color_matrix=bt601
