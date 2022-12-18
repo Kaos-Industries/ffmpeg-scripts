@@ -150,5 +150,3 @@ preset="-preset ultrafast"
 fi
 
 # loudnorm=I=-12:dual_mono=true:TP=-1.5:LRA=11:print_format=summary
-
-# Add to scale filter: :out_color_matrix=bt601
