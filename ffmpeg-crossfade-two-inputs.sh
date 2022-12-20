@@ -4,7 +4,7 @@ set -o pipefail
 
 usage() {
 	echo
-	echo "Pass two sources and an output name. To crop, add optional start and end times for each source."
+	echo "Pass two source files and an output name. To crop, add optional start and end times for each source."
 	echo "usage: `basename $0` source1.mp4 source2.mkv Final.mp4 [start_time1] [end_time1] [start_time2] [end_time2]"
 	echo " -h --help     Print this help."
 	echo " -f --final    Disable the ultrafast preset to produce a final file."

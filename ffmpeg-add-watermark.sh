@@ -4,7 +4,7 @@ set -o pipefail
 
 usage() {
   echo
-  echo "Pass a source and an output name."
+  echo "Pass a source file and an output name."
   echo "usage: `basename $0` source.mp4 Final.mp4 [start_time] [end_time]"
   echo " -h --help     Print this help."
   echo " -f --final    Disable the ultrafast preset to produce a final file."
