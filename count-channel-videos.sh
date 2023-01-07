@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Needed because YouTube seems to be making it harder to count your own channel's videos with each redesign.
+# This script is needed because YouTube seems to be making it harder to count your own channel's videos with each redesign.
 
 set -o errexit
 set -o pipefail
