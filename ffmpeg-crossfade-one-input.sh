@@ -13,6 +13,10 @@ usage() {
 	exit
 }
 
+err='\e[31m'
+warn='\e[33m'
+rc='\033[0m' # Reset colour
+
 if [ $# -lt 2 ]; then usage
 else
 preset="-preset ultrafast"
@@ -78,7 +82,7 @@ preset="-preset ultrafast"
 	read -p "Enter fade duration in seconds: " -ei 2 fadeduration
 	if ! [[ "$fadeduration" =~ ^[0-9]+$ ]] || [[ "$fadeduration" -eq 2 ]]; then 
 		fadeduration=2 
-		echo "WARNING: defaulting to $fadeduration seconds."
+		echo -e "${warn}Defaulting to $fadeduration seconds.${rc}"
 	else echo "Using fade duration of $fadeduration."
 	fi
 
@@ -88,32 +92,26 @@ preset="-preset ultrafast"
 1) Bottom left
 2) Top left
 3) Top right
-4) No watermark
+4) Bottom right
 " ans
 	case $ans in
 	  1)  echo "Defaulting to bottom-left position."
-	      wmpos="80:H-h-50"
-	      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"				
+	      wmpos="80:H-h-50"		
 				;;
 	  2)  echo
 				echo "Positioning watermark at top-left."
 				wmpos="80:50"
-				wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 			  ;;
 	  3)  echo
 				echo "Positioning watermark at top-right."
 				wmpos="W-w-80:50"
-				wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 				;;
 		4)  echo
-				echo "Disabling watermark."
-				unset wmstream1
-				unset wmstream2
-				wmstream3="[tmp2]setsar=1[outv];"
+				echo "Positioning watermark at bottom-right."
+				wmpos="W-w-80:H-h-50"
 				;;
-	  *)  echo "WARNING: invalid option selected, defaulting to bottom-left position."
+	  *)  echo -e "${warn}No option selected, defaulting to bottom-left position.${rc}"
 				wmpos="80:H-h-50"
-				wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 	      ;;
 	esac
 	read -p "Start fade at custom time in first input? [y/N] " -n1 -r
@@ -121,11 +119,11 @@ preset="-preset ultrafast"
 		while [[ -z "$fadetime" ]]; do
 		echo
 		read -p "Enter custom start time in seconds: " fadetime
-		echo "WARNING: using custom fade time of $fadetime seconds from first input."
+		echo "Using custom fade time of $fadetime seconds from first input."
 	done
   fi
 	if [[ -z "$fadetime" ]]; then fadetime="$(echo "$length1" - "$fadeduration" | tr -d $'\r' | bc)" &&
-		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
+		echo -e "${warn}Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds.${rc}" 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
 	ffmpeg -y -hide_banner \
