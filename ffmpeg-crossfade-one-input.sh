@@ -129,23 +129,24 @@ preset="-preset ultrafast"
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
 	ffmpeg -y -hide_banner \
 	$start_opt $end_opt -i "$1" -i "outro.mp4" -loop 1 -i "$watermark" \
-	-movflags +faststart \
+	-movflags +faststart+write_colr \
 	$preset \
 	-filter_complex \
  	"color=black:16x16:d=$total[base];
 	[0:v]scale=-2:'max(1080,ih)':flags=lanczos,setpts=PTS-STARTPTS[v0];
-	[1:v]fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(($fadetime)/TB)[v1];
+	[1:v]scale=-2:'max(1080,ih)':flags=lanczos,fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(($fadetime)/TB)[v1];
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp];
 	[tmp][v1]overlay,setsar=1[tmp2];
 	$wmstream2
-	$wmstream3
+	[video][wm_scaled]overlay=$wmpos:shortest=1:format=rgb[outv];
 	[0:a]afade=out:st=$fadetime:d=$fadeduration[0a];
 	[0a][1:a]concat=n=2:v=0:a=1[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 15 -c:a libopus \
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 13 -c:a libopus \
 	-pix_fmt yuv420p $colour_metadata "$2" 
 	unset fadetime
 fi
 
+# in_color_matrix=auto:out_color_matrix=bt470
 # loudnorm=I=-12:dual_mono=true:TP=-1.5:LRA=11:print_format=summary
