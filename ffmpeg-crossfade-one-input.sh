@@ -48,18 +48,19 @@ preset="-preset ultrafast"
 
   height=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of default=nw=1:nk=1 "$1" | tr -d $'\r')
 	colour_space=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_space -of default=nw=1:nk=1 "$1" | tr -d $'\r')
-	colour_trc=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_transfer -of default=nw=1:nk=1 "$1" | tr -d $'\r') # unused
-	colour_primaries=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_primaries -of default=nw=1:nk=1 "$1" | tr -d $'\r') # unused
 
   # Make sure colour metadata is set to preserve colour and prevent colour shifts
-	if [[ $height -lt 720 && $colour_space == "smpte170m" ]]; then # If input is standard definition and colourspace is BT601 (NTSC)
-	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" # set metadata to BT601 (NTSC)
-  # If input is standard definition and colourspace is BT601 (PAL and SECAM) or unknown
-	elif [[ $height -lt 720 && ($colour_space == "bt470bg" || $colour_space == "unknown") ]]; then 
-	colour_metadata="-colorspace bt470bg -color_trc gamma28 -color_primaries bt470bg" # set metadata to superior/more common PAL/SECAM
-  elif [[ $height -ge 720 ]]; then # If input is high definition
-  colour_metadata="-colorspace bt709 -color_trc bt709 -color_primaries bt709" # set metadata to BT.709
-  else echo "Unrecognised colorspace $color_space detected, leaving colour metadata untouched"
+	if [[ $colour_space == "smpte170m" ]]; then # If input has BT601 (NTSC) colorspace or is standard definition
+	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" # set all metadata to BT601 (NTSC)
+  # If input has BT601 (PAL/SECAM) or unknown colorspace, or is standard definition
+	elif [[ ($colour_space == "bt470bg") ]]; then 
+	colour_metadata="-colorspace bt470bg -color_trc gamma28 -color_primaries bt470bg" # set all metadata to superior/more common PAL/SECAM
+  elif [[ $colour_space == "bt709" ]]; then # If input has BT709 colorspace or is high definition
+  colour_metadata="-colorspace bt709 -color_trc bt709 -color_primaries bt709" # set all metadata to BT.709
+	elif [[ $colour_space = "unknown" ]]; then
+	echo -e "${err}Colorspace cannot be determined: setting metadata to most common default of PAL/SECAM. Watch out for colour shifts and set manually if needed.${rc}"
+	colour_metadata="-colorspace bt470bg -color_trc gamma28 -color_primaries bt470bg" 
+  else echo "${err}Weird colorspace $color_space detected, leaving colour metadata untouched.${rc}"
 	fi
 
 	if [ ! -z "$3" ]; then
