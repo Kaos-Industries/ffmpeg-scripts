@@ -49,17 +49,17 @@ preset="-preset ultrafast"
   height=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of default=nw=1:nk=1 "$1" | tr -d $'\r')
 	colour_space=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_space -of default=nw=1:nk=1 "$1" | tr -d $'\r')
 
-  # Make sure colour metadata is set to preserve colour and prevent colour shifts
+  # Preserve colour and prevent colour shifts by conforming rest of metadata to detected colorspace.
 	if [[ $colour_space == "smpte170m" ]]; then # If input has BT601 (NTSC) colorspace or is standard definition
 	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" # set all metadata to BT601 (NTSC)
   # If input has BT601 (PAL/SECAM) or unknown colorspace, or is standard definition
-	elif [[ ($colour_space == "bt470bg") ]]; then 
-	colour_metadata="-colorspace bt470bg -color_trc gamma28 -color_primaries bt470bg" # set all metadata to superior/more common PAL/SECAM
+	elif [[ ($colour_space == "bt470bg") ]]; then
+	colour_metadata="-colorspace bt470bg -color_trc gamma28 -color_primaries bt470bg" # set all metadata to more common PAL/SECAM
   elif [[ $colour_space == "bt709" ]]; then # If input has BT709 colorspace or is high definition
   colour_metadata="-colorspace bt709 -color_trc bt709 -color_primaries bt709" # set all metadata to BT.709
 	elif [[ $colour_space = "unknown" ]]; then
-	echo -e "${err}Colorspace cannot be determined: setting metadata to most common default of PAL/SECAM. Watch out for colour shifts and set manually if needed.${rc}"
-	colour_metadata="-colorspace bt470bg -color_trc gamma28 -color_primaries bt470bg" 
+	echo -e "${err}Colorspace cannot be determined: setting metadata to safe default of BT601 (NTSC). Watch out for colour shifts and set manually if needed.${rc}" # BT601 is the most common for my (SD) video sources - change to BT701 if working with mostly HD sources.
+	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" 
   else echo "${err}Weird colorspace $color_space detected, leaving colour metadata untouched.${rc}"
 	fi
 
