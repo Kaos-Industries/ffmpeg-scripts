@@ -1,6 +1,6 @@
 TODO:
 
-Add cropping and colorspace detection to video-from-image and convert-9/16
+video-from-image, convert-9/16, add-watermark: add cropping and colorspace detection, refactor for formatting and readability
 Test ffmpeg-concat-with-outro.sh still works
-Add comments to crossfade-one-input.sh
+Add comments to blocks in crossfade-one-input
 Generate outro in FFmpeg
