@@ -19,63 +19,62 @@ usage() {
 
 if [ $# -lt 2 ]; then usage
 else
-	if [ ! -z "$4" ]; then
-	starttime1="$4" 
-	start_opt1="-ss $4" 
-	else 
-	starttime1=0
-	start_opt1=""
-	fi 
-	if [ ! -z "$5" ]; then
-	endtime1="$5" 
-	end_opt1="-to $5" 
-	else 
-	endtime1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
-	end_opt1=""
-	fi
-	if [ ! -z "$6" ]; then
-	starttime2="$6" 
-	start_opt2="-ss $6" 
-	else 
-	starttime2=0
-	start_opt2=""
-	fi 
-	if [ ! -z "$7" ]; then
-	endtime2="$7" 
-	end_opt2="-to $7" 
-	else 
-	endtime2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
-	end_opt2=""
-	fi
-	length1="$(echo $endtime1 - $starttime1 | bc)"
-	length2="$(echo $endtime2 - $starttime2 | bc)"
-	length3="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
-	wmlength="$(echo \($length1 + $length2\) - 5 | bc)"
-
 	preset="-preset ultrafast"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
 	eval set -- "$options"
 	while true
 	do
-		case "$1" in
+		case $1 in
 		-f|--final) 
-		    preset=""
-		    ;;
+	    preset=""
+	    ;;
 		-h|--help) 
-		    usage
+	    usage
 			shift
-		    ;;
+	    ;;
 		--)
-		    shift
-		    break;;
+	    shift
+	    break
+	    ;;
 		\?) 
 			echo "$OPTARG is not a valid option."
 			usage
 			shift
-			break;;    
+			break
+			;;    
 		esac
 		shift
 	done
+
+	if [ ! -z "$4" ]; then
+		starttime1="$4" 
+		start_opt1="-ss $4" 
+		else 
+		starttime1=0
+		start_opt1=""
+		fi 
+		if [ ! -z "$5" ]; then
+		endtime1="$5" 
+		end_opt1="-to $5" 
+		else 
+		endtime1="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
+		end_opt1=""
+		fi
+		if [ ! -z "$6" ]; then
+		starttime2="$6" 
+		start_opt2="-ss $6" 
+		else 
+		starttime2=0
+		start_opt2=""
+		fi 
+		if [ ! -z "$7" ]; then
+		endtime2="$7" 
+		end_opt2="-to $7" 
+		else 
+		endtime2="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$1" | tr -d $'\r')"
+		end_opt2=""
+	fi
+
 	read -p "Enter first fade duration in seconds: " -ei 2 fadeduration1
 	if ! [[ "$fadeduration1" =~ ^[0-9]+$ ]] || [[ "$fadeduration1" -eq 2 ]]; then 
 		fadeduration1=2 
@@ -89,6 +88,26 @@ else
 	else echo "Setting second fade duration to $fadeduration2."
 	fi
 
+  # Preserve colour and prevent colour shifts by conforming rest of metadata to detected colorspace.
+  # height=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of default=nw=1:nk=1 "$1" | tr -d $'\r')
+	colour_space=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_space -of default=nw=1:nk=1 "$1" | tr -d $'\r')
+	if [[ $colour_space == "smpte170m" ]]; then # If input has BT601 (NTSC) colorspace or is standard definition
+	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" # set all metadata to BT601 (NTSC)
+  # If input has BT601 (PAL/SECAM) or unknown colorspace, or is standard definition
+	elif [[ ($colour_space == "bt470bg") ]]; then
+	colour_metadata="-colorspace bt470bg -color_trc gamma28 -color_primaries bt470bg" # set all metadata to more common PAL/SECAM
+  elif [[ $colour_space == "bt709" ]]; then # If input has BT709 colorspace or is high definition
+  colour_metadata="-colorspace bt709 -color_trc bt709 -color_primaries bt709" # set all metadata to BT.709
+	elif [[ $colour_space = "unknown" ]]; then
+	echo -e "${err}Colorspace cannot be determined: setting metadata to safe default of BT601 (NTSC). Watch out for colour shifts and set manually if needed.${rc}" # BT601 is the most common for my (SD) video sources - change to BT701 if working with mostly HD sources.
+	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" 
+  else echo "${err}Weird colorspace $color_space detected, leaving colour metadata untouched.${rc}"
+	fi	
+
+	length1="$(echo $endtime1 - $starttime1 | bc)"
+	length2="$(echo $endtime2 - $starttime2 | bc)"
+	length3="$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 outro.mp4 | tr -d $'\r')"
+	wmlength="$(echo \($length1 + $length2\) - 5 | bc)"
 	wmstream1="[3:v]lut=a=val*0.7,fade=in:st=15:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v3];"
  	wmstream2="[v3][video]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
@@ -158,7 +177,8 @@ else
 	[video][wm_scaled]overlay=$wmpos:shortest=1:format=rgb[outv];
 	[0:a][1:a]acrossfade=d=$fadeduration1[aud];
 	[aud][2:a]acrossfade=d=$fadeduration2[outa]" \
-	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest -pix_fmt yuv420p "$3"
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 17 -c:a libopus -shortest \
+	-pix_fmt yuv420p $colour_metadata "$3"
 	unset fadetime1
 	unset fadetime2
 fi

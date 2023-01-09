@@ -46,10 +46,31 @@ else
 		shift
 	done
 
-  height=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of default=nw=1:nk=1 "$1" | tr -d $'\r')
-	colour_space=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_space -of default=nw=1:nk=1 "$1" | tr -d $'\r')
+	if [ ! -z "$3" ]; then
+		starttime="$3" 
+		start_opt="-ss $3" 
+		else 
+		starttime=0
+		start_opt=""
+		fi 
+		if [ ! -z "$4" ]; then
+		endtime="$4" 
+		end_opt="-to $4" 
+		else 
+		endtime="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$1" | tr -d $'\r')"
+		end_opt=""
+	fi
+	
+	read -p "Enter fade duration in seconds: " -ei 2 fadeduration
+	if ! [[ "$fadeduration" =~ ^[0-9]+$ ]] || [[ "$fadeduration" -eq 2 ]]; then 
+		fadeduration=2 
+		echo -e "${warn}Defaulting to $fadeduration seconds.${rc}"
+	else echo "Using fade duration of $fadeduration."
+	fi
 
   # Preserve colour and prevent colour shifts by conforming rest of metadata to detected colorspace.
+  # height=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of default=nw=1:nk=1 "$1" | tr -d $'\r')
+	colour_space=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_space -of default=nw=1:nk=1 "$1" | tr -d $'\r')
 	if [[ $colour_space == "smpte170m" ]]; then # If input has BT601 (NTSC) colorspace or is standard definition
 	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" # set all metadata to BT601 (NTSC)
   # If input has BT601 (PAL/SECAM) or unknown colorspace, or is standard definition
@@ -63,30 +84,9 @@ else
   else echo "${err}Weird colorspace $color_space detected, leaving colour metadata untouched.${rc}"
 	fi
 
-	if [ ! -z "$3" ]; then
-	starttime="$3" 
-	start_opt="-ss $3" 
-	else 
-	starttime=0
-	start_opt=""
-	fi 
-	if [ ! -z "$4" ]; then
-	endtime="$4" 
-	end_opt="-to $4" 
-	else 
-	endtime="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 "$1" | tr -d $'\r')"
-	end_opt=""
-	fi
 	length1="$(echo $endtime - $starttime | bc)"
 	length2="$(ffprobe -v error -show_entries format=duration -of default=nw=1:nk=1 outro.mp4 | tr -d $'\r')"
 	wmlength="$(echo $length1 - 5 | bc)"	
-	read -p "Enter fade duration in seconds: " -ei 2 fadeduration
-	if ! [[ "$fadeduration" =~ ^[0-9]+$ ]] || [[ "$fadeduration" -eq 2 ]]; then 
-		fadeduration=2 
-		echo -e "${warn}Defaulting to $fadeduration seconds.${rc}"
-	else echo "Using fade duration of $fadeduration."
-	fi
-
 	wmstream1="[2:v]lut=a=val*0.7,fade=in:st=15:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v2];"
  	wmstream2="[v2][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
