@@ -4,6 +4,10 @@ set -o pipefail
 
 watermark="D:\Users\Hashim\Documents\Projects\YouTube Channel 1\Meta\Watermark\Watermark.png"
 
+err='\e[31m'
+warn='\e[33m'
+rc='\033[0m' # Reset colour
+
 usage() {
 	echo
 	echo "Pass a source file and an output name. To crop, add optional start and end times."
@@ -13,13 +17,9 @@ usage() {
 	exit
 }
 
-err='\e[31m'
-warn='\e[33m'
-rc='\033[0m' # Reset colour
-
 if [ $# -lt 2 ]; then usage
 else
-preset="-preset ultrafast"
+	preset="-preset ultrafast"
 	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
 	eval set -- "$options"
 	while true
@@ -96,24 +96,24 @@ preset="-preset ultrafast"
 4) Bottom right
 " ans
 	case $ans in
-	  1)  echo "Defaulting to bottom-left position."
-	      wmpos="80:H-h-50"		
-				;;
-	  2)  echo
-				echo "Positioning watermark at top-left."
-				wmpos="80:50"
-			  ;;
-	  3)  echo
-				echo "Positioning watermark at top-right."
-				wmpos="W-w-80:50"
-				;;
-		4)  echo
-				echo "Positioning watermark at bottom-right."
-				wmpos="W-w-80:H-h-50"
-				;;
-	  *)  echo -e "${warn}No option selected, defaulting to bottom-left position.${rc}"
-				wmpos="80:H-h-50"
-	      ;;
+  1)  echo "Defaulting to bottom-left position."
+      wmpos="80:H-h-50"
+			;;
+  2)  echo
+			echo "Positioning watermark at top-left."
+			wmpos="80:50"
+		  ;;
+  3)  echo
+			echo "Positioning watermark at top-right."
+			wmpos="W-w-80:50"
+			;;
+	4)  echo
+			echo "Positioning watermark at bottom-right."
+			wmpos="W-w-80:H-h-50"
+			;;
+  *)  echo -e "${warn}No option selected, defaulting to bottom-left position.${rc}"
+			wmpos="80:H-h-50"
+      ;;
 	esac
 	read -p "Start fade at custom time in first input? [y/N] " -n1 -r
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
