@@ -2,6 +2,12 @@
 set -o errexit
 set -o pipefail
 
+watermark="D:\Users\Hashim\Documents\Projects\YouTube Channel 1\Meta\Watermark\Watermark.png"
+
+err='\e[31m'
+warn='\e[33m'
+rc='\033[0m' # Reset colour
+
 usage() {
 	echo
 	echo "Pass an image input, an audio input and an output name."
@@ -10,6 +16,7 @@ usage() {
 	echo " -f --final    Disable the ultrafast preset to produce a final file."
 	exit
 }
+
 if [ $# -lt 2 ]; then usage
 else
 	preset="-preset ultrafast"
@@ -22,30 +29,34 @@ else
 	do
 		case $1 in
 		-f|--final) 
-		    preset=""
-		    ;;
+	    preset=""
+	    ;;
 		-h|--help) 
-		    usage
+	    usage
 			shift
-		    ;;
+	    ;;
 		--)
-		    shift
-		    break;;
+	    shift
+	    break
+	    ;;
 		\?) 
 			echo "$OPTARG is not a valid option."
 			usage
 			shift
-			break;;    
+			break
+			;;    
 		esac
 		shift
 	done
+	
 	read -p "Enter fade duration in seconds: " -ei 2 fadeduration
 	if ! [[ "$fadeduration" =~ ^[0-9]+$ ]] || [[ "$fadeduration" -eq 2 ]]; then 
 		fadeduration=2 
-		echo "WARNING: defaulting to $fadeduration seconds."
+		echo -e "${warn}Defaulting to $fadeduration seconds.${rc}"
 	else echo "Using fade duration of $fadeduration."
 	fi
-	wmstream1="[3:v]lut=a=val*0.7,fade=in:st=15:d=3:alpha=1,fade=out:st=$wmlength:d=3:alpha=1[v3];"
+
+	wmstream1="[3:v]lut=a=val*0.7,fade=in:st=15:d=3:alpha=1,fade=out:st=$wmlength:d=2:alpha=1[v3];"
  	wmstream2="[v3][tmp2]scale2ref=w=oh*mdar:h=ih*0.07[wm_scaled][video];"
 	read -e -n1 -p "Select watermark position:
 1) Bottom left
@@ -53,30 +64,24 @@ else
 3) Top right
 4) No watermark
 " ans
-case $ans in
+	case $ans in
   1)  echo "Defaulting to bottom-left position."
       wmpos="80:H-h-50"
-      wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"				
 			;;
   2)  echo
 			echo "Positioning watermark at top-left."
 			wmpos="80:50"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 		  ;;
   3)  echo
 			echo "Positioning watermark at top-right."
 			wmpos="W-w-80:50"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
 			;;
 	4)  echo
-			echo "Disabling watermark."
-			unset wmstream1
-			unset wmstream2
-			wmstream3="[tmp2]setsar=1[outv];"
+			echo "Positioning watermark at bottom-right."
+			wmpos="W-w-80:H-h-50"
 			;;
-  *)  echo "WARNING: invalid option selected, defaulting to bottom-left position."
+  *)  echo -e "${warn}No option selected, defaulting to bottom-left position.${rc}"
 			wmpos="80:H-h-50"
-			wmstream3="[video][wm_scaled]overlay=$wmpos:shortest=1:format=auto[outv];"
       ;;
 	esac
 	read -p "Start fade at custom time in first input? [y/N] " -n1 -r
@@ -84,11 +89,11 @@ case $ans in
 		while [[ -z "$fadetime" ]]; do
 		echo
 		read -p "Enter custom start time in seconds: " fadetime
-		echo "WARNING: using custom fade time of $fadetime seconds from first input.".
+		echo "Using custom fade time of $fadetime seconds from first input.".
 	done
   fi
 	if [[ -z "$fadetime" ]]; then fadetime="$(echo "$length1" - "$fadeduration" | tr -d $'\r' | bc)" && 
-		echo "Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds." 
+		echo -e "${warn}Defaulting to adding fade -$fadeduration seconds from first input, at $fadetime seconds.${rc}" 
 	fi
  	total="$(echo "$length1 + $length2 - $fadeduration" | tr -d $'\r' | bc)"
 	ffmpeg -y -hide_banner \
@@ -97,17 +102,17 @@ case $ans in
 	$preset \
 	-filter_complex \
 	"color=black:16x16:d=$total[base];
-	[0:v]fade=in:st=0:d=2,scale=-2:'max(1080,ih)',setpts=PTS-STARTPTS[v0];
-	[2:v]fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(("$fadetime")/TB)[v2];
+	[0:v]fade=in:st=0:d=2,scale=-2:'max(1080,ih)'::flags=lanczos,setpts=PTS-STARTPTS[v0];
+	[2:v]fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(($fadetime)/TB)[v2];
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
 	[base][v0]overlay[tmp];
 	[tmp][v2]overlay,setsar=1[tmp2];
 	$wmstream2
-	$wmstream3
+	[video][wm_scaled]overlay=$wmpos:shortest=1:format=rgb[outv];
 	[1:a]afade=out:st=$fadetime:d=$fadeduration[1a];
 	[1a][2:a]acrossfade=d=$fadeduration[outa]" \
-	-map "[outv]" -map "[outa]" -map -0:v:1 -map_metadata -1 -c:v libx264 -c:a libopus -pix_fmt yuv420p "$3"
+	-map "[outv]" -map "[outa]" -c:v libx264 -crf 18 -c:a libopus -pix_fmt yuv420p "$3"
 	unset fadetime
 fi
 
