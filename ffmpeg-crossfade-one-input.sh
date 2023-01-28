@@ -1,6 +1,7 @@
 #!/bin/bash
 set -o errexit
 set -o pipefail
+set -x
 
 watermark="D:\Users\Hashim\Documents\Projects\YouTube Channel 1\Meta\Watermark\Watermark.png"
 
@@ -14,13 +15,14 @@ usage() {
 	echo "usage: `basename $0` source.mp4 Final.mp4 [start_time] [end_time]"
 	echo " -h --help     Print this help."
 	echo " -f --final    Disable the ultrafast preset to produce a final file."
+	echo " -b            Enable brightness compensation."
 	exit
 }
 
 if [ $# -lt 2 ]; then usage
 else
 	preset="-preset ultrafast"
-	options=$(getopt -l "final,help" -o "fh" -a -- "$@")
+	options=$(getopt -l "final,help,brightness" -o "fhb" -a -- "$@")
 	eval set -- "$options"
 	while true
 	do
@@ -28,6 +30,9 @@ else
 		-f|--final) 
 	    preset=""
 	    ;;
+	  -b|--brightness)
+	  	adj_bright=",curves=0.4/0.5" # Use the curves filter to lighten the output
+	  	;;
 		-h|--help) 
 	    usage
 			shift
@@ -68,10 +73,9 @@ else
 	else echo "Using fade duration of $fadeduration."
 	fi
 
-  # Preserve colour and prevent colour shifts by conforming rest of metadata to detected colorspace.
-  height=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of default=nw=1:nk=1 "$1" | tr -d $'\r')
+  # Preserve colour and prevent colour shifts by explicitly setting colour metadata
+  height=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of default=nw=1:nk=1 "$1" | tr -d $'\r')
 	colour_space=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_space -of default=nw=1:nk=1 "$1" | tr -d $'\r')
-
 	if [[ $colour_space = "unknown" ]]; then
 	echo -e "${err}Colorspace is unknown: setting metadata to safe default of BT601 (NTSC). Watch out for colour shifts and set manually if needed.${rc}" # BT601 is the most common for my (SD) video sources - change to BT701 if working with mostly HD sources.
 	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m"
@@ -80,7 +84,7 @@ else
   elif [[ $height -lt "720" ]]; then # If input is standard definition and has any other colorspace
 	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" # set all colour metadata to BT.601 (NTSC)
   elif [[ $height -ge "720" ]]; then # If input is high definition
-  colour_metadata="-colorspace bt709 -color_trc bt709 -color_primaries bt709" # set all metadata to BT.709
+  colour_metadata="-colorspace bt709 -color_trc bt709 -color_primaries bt709" # set all colour metadata to BT.709
   else echo "${err}Weird colorspace $color_space detected, leaving colour metadata untouched.${rc}"
 	fi
 
@@ -133,7 +137,7 @@ else
 	$preset \
 	-filter_complex \
  	"color=black:16x16:d=$total[base];
-	[0:v]scale=-2:'max(1080,ih)':flags=lanczos,setpts=PTS-STARTPTS[v0];
+	[0:v]scale=-2:'max(1080,ih)':flags=lanczos$adj_bright,setpts=PTS-STARTPTS[v0];
 	[1:v]scale=-2:'max(1080,ih)':flags=lanczos,fade=in:st=0:d=$fadeduration:alpha=1,setpts=PTS-STARTPTS+(($fadetime)/TB)[v1];
 	$wmstream1
 	[base][v0]scale2ref[base][v0];
@@ -150,3 +154,5 @@ fi
 
 # in_color_matrix=auto:out_color_matrix=bt470
 # loudnorm=I=-12:dual_mono=true:TP=-1.5:LRA=11:print_format=summary
+
+
