@@ -1,7 +1,6 @@
 #!/bin/bash
 set -o errexit
 set -o pipefail
-set -x
 
 watermark="D:\Users\Hashim\Documents\Projects\YouTube Channel 1\Meta\Watermark\Watermark.png"
 
@@ -77,15 +76,15 @@ else
   height=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of default=nw=1:nk=1 "$1" | tr -d $'\r')
 	colour_space=$(ffprobe -v error -select_streams v:0 -show_entries stream=color_space -of default=nw=1:nk=1 "$1" | tr -d $'\r')
 	if [[ $colour_space = "unknown" ]]; then
-	echo -e "${err}Colorspace is unknown: setting metadata to safe default of BT601 (NTSC). Watch out for colour shifts and set manually if needed.${rc}" # BT601 is the most common for my (SD) video sources - change to BT701 if working with mostly HD sources.
-	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m"
-	elif [[ $height -lt "720" && $colour_space == "bt470bg" ]]; then # If input is standard definition and has BT.601 (PAL/SECAM) colorspace
-	colour_metadata="-colorspace bt470bg -color_trc gamma28 -color_primaries bt470bg" # set all colour metadata to BT.601 (PAL/SECAM)
-  elif [[ $height -lt "720" ]]; then # If input is standard definition and has any other colorspace
-	colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" # set all colour metadata to BT.601 (NTSC)
-  elif [[ $height -ge "720" ]]; then # If input is high definition
-  colour_metadata="-colorspace bt709 -color_trc bt709 -color_primaries bt709" # set all colour metadata to BT.709
-  else echo "${err}Weird colorspace $color_space detected, leaving colour metadata untouched.${rc}"
+		echo -e "${err}Colorspace is unknown: setting metadata to safe default of BT601 (NTSC). Watch out for colour shifts and set manually if needed.${rc}" # BT601 is the most common for my (SD) video sources - change to BT701 if working with mostly HD sources.
+		colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m"
+		elif [[ $height -lt "720" && $colour_space == "bt470bg" ]]; then # If input is standard definition and has BT.601 (PAL/SECAM) colorspace
+		colour_metadata="-colorspace bt470bg -color_trc gamma28 -color_primaries bt470bg" # set all colour metadata to BT.601 (PAL/SECAM)
+		elif [[ $height -lt "720" ]]; then # If input is standard definition and has any other colorspace
+		colour_metadata="-colorspace smpte170m -color_trc smpte170m -color_primaries smpte170m" # set all colour metadata to BT.601 (NTSC)
+		elif [[ $height -ge "720" ]]; then # If input is high definition
+		colour_metadata="-colorspace bt709 -color_trc bt709 -color_primaries bt709" # set all colour metadata to BT.709
+		else echo "${err}Weird colorspace $color_space detected, leaving colour metadata untouched.${rc}"
 	fi
 
 	length1="$(echo $endtime - $starttime | bc)"

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# This script is needed because YouTube seems to be making it harder to count your own channel's videos with each redesign.
+# Needed because YouTube seems to be making it harder to count your own channel's videos with each redesign.
 
 set -o errexit
 set -o pipefail
@@ -22,6 +22,7 @@ if [ $# -ge 1 ]; then
 yt-dlp --flat-playlist $1
 else yt-dlp --flat-playlist $mychannel
 fi
+else
 echo "This script requires YouTube-DLP: https://github.com/yt-dlp/yt-dlp"
 exit
 fi
